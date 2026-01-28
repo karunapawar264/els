@@ -88,6 +88,15 @@
             border-left: 4px solid #c33;
         }
         
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2e7d32;
+        }
+        
         .login-link {
             text-align: center;
             margin-top: 20px;
@@ -111,6 +120,10 @@
         
         {% if error %}
             <div class="error">{{ error }}</div>
+        {% endif %}
+        
+        {% if success %}
+            <div class="success">{{ success }}</div>
         {% endif %}
         
         <form method="POST">

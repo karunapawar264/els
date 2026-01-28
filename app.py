@@ -92,34 +92,58 @@ def home():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     error = None
+    success = None
     if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
+        username = request.form.get('username').strip() if request.form.get('username') else None
+        email = request.form.get('email').strip() if request.form.get('email') else None
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
 
         # Validation
         if not username or not email or not password or not confirm_password:
             error = 'All fields are required'
-        elif password != confirm_password:
-            error = 'Passwords do not match'
+        elif len(username) < 3:
+            error = 'Username must be at least 3 characters'
         elif len(password) < 6:
             error = 'Password must be at least 6 characters long'
+        elif password != confirm_password:
+            error = 'Passwords do not match'
+        elif '@' not in email:
+            error = 'Please enter a valid email address'
         else:
             try:
                 conn = get_db()
                 c = conn.cursor()
+                
+                # Hash password using Werkzeug's built-in PBKDF2 with scrypt
                 hashed_password = generate_password_hash(password)
                 
+                # Insert new user into database
                 c.execute('INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
                          (username, email, hashed_password))
                 conn.commit()
+                
+                # Log successful user creation
+                print(f"✅ New user registered: {username} ({email})")
+                print(f"   Password hash: {hashed_password[:50]}...")
+                
                 conn.close()
-                return redirect(url_for('login'))
-            except sqlite3.IntegrityError:
-                error = 'Username or email already exists'
+                success = f'Account created successfully! Please login with your credentials.'
+                # Redirect to login after 2 seconds
+                return render_template('register.html', success=success, redirect_to='login')
+                
+            except sqlite3.IntegrityError as e:
+                if 'username' in str(e):
+                    error = f'Username "{username}" is already taken'
+                elif 'email' in str(e):
+                    error = f'Email "{email}" is already registered'
+                else:
+                    error = 'Registration failed. Please try again.'
+            except Exception as e:
+                print(f"❌ Registration error: {e}")
+                error = f'An error occurred during registration. Please try again.'
     
-    return render_template('register.html', error=error)
+    return render_template('register.html', error=error, success=success)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
