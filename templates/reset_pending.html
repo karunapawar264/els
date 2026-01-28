@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Reset</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+        
+        .icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+        
+        p {
+            color: #666;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .email-highlight {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: 600;
+            color: #333;
+            margin: 20px 0;
+        }
+        
+        .info-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .info-box p {
+            margin: 0;
+            color: #333;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">✉️</div>
+        <h1>Check Your Email</h1>
+        
+        <p>A password reset link has been sent to:</p>
+        <div class="email-highlight">{{ email }}</div>
+        
+        <p>Click the link in the email to reset your password.</p>
+        
+        <div class="info-box">
+            <p><strong>⏰ Note:</strong> The reset link expires in 1 hour</p>
+        </div>
+        
+        <p style="font-size: 14px; color: #999; margin-top: 20px;">
+            Didn't receive the email? Check your spam folder
+        </p>
+        
+        <a href="{{ url_for('login') }}" class="back-link">Back to Login</a>
+    </div>
+</body>
+</html>
