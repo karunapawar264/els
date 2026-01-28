@@ -25,7 +25,8 @@ DATABASE = 'users.db'
 
 def init_db():
     if not os.path.exists(DATABASE):
-        conn = sqlite3.connect(DATABASE)
+        conn = sqlite3.connect(DATABASE, timeout=10.0)
+        conn.execute('PRAGMA journal_mode=WAL')  # Enable Write-Ahead Logging
         c = conn.cursor()
         c.execute('''CREATE TABLE users
                      (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,7 +40,8 @@ def init_db():
         conn.close()
     else:
         # Add columns if they don't exist (for existing databases)
-        conn = sqlite3.connect(DATABASE)
+        conn = sqlite3.connect(DATABASE, timeout=10.0)
+        conn.execute('PRAGMA journal_mode=WAL')  # Enable Write-Ahead Logging
         c = conn.cursor()
         try:
             c.execute('ALTER TABLE users ADD COLUMN reset_token TEXT')
@@ -51,8 +53,9 @@ def init_db():
         conn.close()
 
 def get_db():
-    conn = sqlite3.connect(DATABASE)
+    conn = sqlite3.connect(DATABASE, timeout=10.0)
     conn.row_factory = sqlite3.Row
+    conn.execute('PRAGMA journal_mode=WAL')  # Write-Ahead Logging for better concurrency
     return conn
 
 def send_reset_password_email(email, username, token):
