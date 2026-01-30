@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Simple & Secure{% endblock %}
+
+{% block content %}
+<div class="glass-card welcome-section">
+    <h2>Welcome, {{ username }}!</h2>
+    <p class="subtitle">Contact: <strong>{{ mobile_no }}</strong></p>
+
+    <div style="margin-top: 2rem; padding: 2rem; background: rgba(255,255,255,0.05); border-radius: 1rem;">
+        <p style="font-size: 0.875rem; color: var(--text-muted);">
+            This is your workspace. Here you can find your recent activities and account settings.
+        </p>
+    </div>
+
+    <a href="{{ url_for('logout') }}" class="logout-link">Secure Logout</a>
+</div>
+{% endblock %}

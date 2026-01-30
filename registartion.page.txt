@@ -1,0 +1,512 @@
+================================================================================
+FILE: app.py
+================================================================================
+from flask import Flask, render_template, request, redirect, url_for, flash, session
+
+app = Flask(__name__)
+app.secret_key = 'supersecretkey'  # Required for flashing messages and session
+
+# Mock user database for demonstration
+users = {
+    "test@example.com": {"password": "password123", "name": "Test User"}
+}
+
+@app.route('/')
+def index():
+    if 'user' in session:
+        return redirect(url_for('dashboard'))
+    return redirect(url_for('login'))
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        mobile_no = request.form.get('mobile_no')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+
+        if not username or not email or not mobile_no or not password or not confirm_password:
+            flash('All fields are required!', 'danger')
+        elif password != confirm_password:
+            flash('Passwords do not match!', 'danger')
+        elif email in users:
+            flash('Email already registered!', 'danger')
+        else:
+            # Save user to mock database
+            users[email] = {
+                "password": password, 
+                "username": username,
+                "mobile_no": mobile_no
+            }
+            flash('Registration successful! Please login.', 'success')
+            return redirect(url_for('login'))
+
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        user = users.get(email)
+        if user and user['password'] == password:
+            session['user'] = email
+            session['username'] = user['username']
+            session['mobile_no'] = user['mobile_no']
+            flash(f'Welcome back, {user["username"]}!', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Invalid email or password.', 'danger')
+
+    return render_template('login.html')
+
+@app.route('/dashboard')
+def dashboard():
+    if 'user' not in session:
+        flash('Please login to access this page.', 'danger')
+        return redirect(url_for('login'))
+    return render_template('dashboard.html', 
+                           username=session['username'], 
+                           mobile_no=session['mobile_no'])
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('You have been logged out.', 'success')
+    return redirect(url_for('login'))
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+================================================================================
+FILE: static/css/style.css
+================================================================================
+:root {
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    --card-bg: rgba(30, 41, 59, 0.7);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border: rgba(255, 255, 255, 0.1);
+    --success: #10b981;
+    --danger: #ef4444;
+    --glass-blur: blur(12px);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: var(--bg-gradient);
+    background-attachment: fixed;
+    color: var(--text-main);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Navigation */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: var(--glass-blur);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-decoration: none;
+    letter-spacing: -0.025em;
+}
+
+.nav-links {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+}
+
+.nav-links a {
+    color: var(--text-main);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.nav-links a:hover {
+    color: var(--primary);
+}
+
+/* Layout Containers */
+.main-content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+.container {
+    width: 100%;
+    max-width: 450px;
+}
+
+/* Card - Glassmorphism */
+.glass-card {
+    background: var(--card-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--border);
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+h2 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+p.subtitle {
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 0.875rem;
+}
+
+/* Forms */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+input {
+    width: 100%;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--text-main);
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.toggle-btn {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.75rem;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.submit-btn {
+    width: 100%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    padding: 0.875rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 1rem;
+}
+
+.submit-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.submit-btn:active {
+    transform: translateY(0);
+}
+
+/* Alerts */
+.alert {
+    padding: 1rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: center;
+    backdrop-filter: var(--glass-blur);
+}
+
+.alert.success {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.alert.danger {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Footer links */
+.card-footer {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.card-footer a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.card-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Dashboard Specific */
+.welcome-section {
+    text-align: center;
+}
+
+.logout-link {
+    display: inline-block;
+    margin-top: 2rem;
+    color: var(--danger);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.5rem 1.5rem;
+    border: 1px solid var(--danger);
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+}
+
+.logout-link:hover {
+    background: var(--danger);
+    color: white;
+}
+
+
+================================================================================
+FILE: templates/base.html
+================================================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Simple & Secure{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+    <nav>
+        <a href="{{ url_for('index') }}" class="nav-logo">ELS AUTH</a>
+        <ul class="nav-links">
+            {% if session.get('user') %}
+            <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('logout') }}" style="color: var(--danger);">Logout</a></li>
+            {% else %}
+            <li><a href="{{ url_for('login') }}">Login</a></li>
+            <li><a href="{{ url_for('register') }}">Register</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert {{ category }}">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <script>
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            const btn = input.nextElementSibling;
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = 'Hide';
+            } else {
+                input.type = 'password';
+                btn.textContent = 'Show';
+            }
+        }
+    </script>
+</body>
+
+</html>
+
+
+================================================================================
+FILE: templates/login.html
+================================================================================
+{% extends "base.html" %}
+
+{% block title %}Login | Simple & Secure{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <h2>Welcome Back</h2>
+    <p class="subtitle">Please enter your details to login</p>
+
+    <form action="{{ url_for('login') }}" method="POST">
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" placeholder="name@example.com" required>
+        </div>
+
+        <div class="form-group">
+            <label>Password</label>
+            <div class="password-wrapper">
+                <input type="password" id="password" name="password" placeholder="••••••••" required>
+                <button type="button" class="toggle-btn" onclick="togglePassword('password')">Show</button>
+            </div>
+        </div>
+
+        <button type="submit" class="submit-btn">Login to Account</button>
+    </form>
+
+    <div class="card-footer">
+        Don't have an account? <a href="{{ url_for('register') }}">Create one</a>
+    </div>
+</div>
+{% endblock %}
+
+
+================================================================================
+FILE: templates/register.html
+================================================================================
+{% extends "base.html" %}
+
+{% block title %}Register | Simple & Secure{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <h2>Create Account</h2>
+    <p class="subtitle">Join us today! It only takes a minute.</p>
+
+    <form action="{{ url_for('register') }}" method="POST">
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" name="username" placeholder="johndoe123" required>
+        </div>
+
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" placeholder="name@example.com" required>
+        </div>
+
+        <div class="form-group">
+            <label>Mobile No.</label>
+            <input type="tel" name="mobile_no" placeholder="+1 234 567 890" required>
+        </div>
+
+        <div class="form-group">
+            <label>Password</label>
+            <div class="password-wrapper">
+                <input type="password" id="password" name="password" placeholder="••••••••" required>
+                <button type="button" class="toggle-btn" onclick="togglePassword('password')">Show</button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Confirm Password</label>
+            <div class="password-wrapper">
+                <input type="password" id="confirm_password" name="confirm_password" placeholder="••••••••" required>
+                <button type="button" class="toggle-btn" onclick="togglePassword('confirm_password')">Show</button>
+            </div>
+        </div>
+
+        <button type="submit" class="submit-btn" style="background: var(--success);">Sign Up Now</button>
+    </form>
+
+    <div class="card-footer">
+        Already have an account? <a href="{{ url_for('login') }}">Login</a>
+    </div>
+</div>
+{% endblock %}
+
+
+================================================================================
+FILE: templates/dashboard.html
+================================================================================
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Simple & Secure{% endblock %}
+
+{% block content %}
+<div class="glass-card welcome-section">
+    <h2>Welcome, {{ username }}!</h2>
+    <p class="subtitle">Contact: <strong>{{ mobile_no }}</strong></p>
+    
+    <div style="margin-top: 2rem; padding: 2rem; background: rgba(255,255,255,0.05); border-radius: 1rem;">
+        <p style="font-size: 0.875rem; color: var(--text-muted);">
+            This is your workspace. Here you can find your recent activities and account settings.
+        </p>
+    </div>
+
+    <a href="{{ url_for('logout') }}" class="logout-link">Secure Logout</a>
+</div>
+{% endblock %}
