@@ -366,6 +366,7 @@ let score = 0;
 let startTime;
 let timerInterval;
 let canAnswer = true;
+let wrongAnswers = [];
 
 // UI Elements
 const heroScreen = document.getElementById('hero-screen');
@@ -383,6 +384,7 @@ const progressIndicator = document.getElementById('progress-indicator');
 
 const feedbackMessage = document.getElementById('feedback-message');
 const nextBtn = document.getElementById('next-q-btn');
+const hintBtn = document.getElementById('skip-q');
 
 // Result elements
 const finalScoreDisplay = document.getElementById('final-score');
@@ -390,6 +392,8 @@ const finalPercentDisplay = document.getElementById('final-percent');
 const finalTimeDisplay = document.getElementById('final-time');
 const rankNameDisplay = document.getElementById('rank-name');
 const resultTagline = document.getElementById('result-tagline');
+const reviewSection = document.getElementById('review-section');
+const reviewList = document.getElementById('review-list');
 
 // Event Listeners
 document.getElementById('start-quiz-btn').addEventListener('click', startQuiz);
@@ -404,6 +408,8 @@ nextBtn.addEventListener('click', () => {
     }
 });
 
+hintBtn.addEventListener('click', useHint);
+
 function startQuiz() {
     heroScreen.classList.add('hidden');
     quizScreen.classList.remove('hidden');
@@ -417,6 +423,8 @@ function loadQuestion() {
     canAnswer = true;
     nextBtn.classList.add('hidden');
     feedbackMessage.classList.add('hidden');
+    hintBtn.disabled = false;
+    hintBtn.style.opacity = '1';
 
     const q = questions[currentIndex];
     questionText.innerText = q.q;
@@ -442,6 +450,8 @@ function loadQuestion() {
 function handleAnswer(idx, btn) {
     if (!canAnswer) return;
     canAnswer = false;
+    hintBtn.disabled = true;
+    hintBtn.style.opacity = '0.5';
 
     const q = questions[currentIndex];
     const isCorrect = idx === q.a;
@@ -456,11 +466,35 @@ function handleAnswer(idx, btn) {
         const options = optionsGrid.querySelectorAll('.option-card');
         options[q.a].classList.add('correct');
         showFeedback("Oops! That's not quite right.", false);
+
+        // Save for review
+        wrongAnswers.push({
+            question: q.q,
+            yourAnswer: q.o[idx],
+            correctAnswer: q.o[q.a]
+        });
     }
 
     // Lock all options
     optionsGrid.querySelectorAll('.option-card').forEach(opt => opt.classList.add('locked'));
     nextBtn.classList.remove('hidden');
+}
+
+function useHint() {
+    if (!canAnswer) return;
+
+    const q = questions[currentIndex];
+    const options = Array.from(optionsGrid.querySelectorAll('.option-card'));
+    const wrongOptions = options.filter((_, idx) => idx !== q.a && !options[idx].classList.contains('hidden-hint'));
+
+    if (wrongOptions.length > 0) {
+        const randomWrong = wrongOptions[Math.floor(Math.random() * wrongOptions.length)];
+        randomWrong.style.opacity = '0.3';
+        randomWrong.style.pointerEvents = 'none';
+        randomWrong.classList.add('hidden-hint');
+        hintBtn.disabled = true;
+        hintBtn.style.opacity = '0.5';
+    }
 }
 
 function showFeedback(msg, isSuccess) {
@@ -488,8 +522,11 @@ function showResults() {
     const percentage = Math.round((score / questions.length) * 100);
 
     finalScoreDisplay.innerText = score;
-    finalPercentDisplay.innerText = `${percentage}%`;
     finalTimeDisplay.innerText = finalTime;
+
+    // Accuracy handling
+    const percentEl = document.getElementById('final-percent') || finalPercentDisplay;
+    if (percentEl) percentEl.innerText = `${percentage}%`;
 
     // Rank & Tagline
     if (percentage === 100) {
@@ -507,5 +544,21 @@ function showResults() {
     } else {
         rankNameDisplay.innerText = "C++ Novice";
         resultTagline.innerText = "Every expert was once a beginner. Keep learning!";
+    }
+
+    // Populate Review list
+    if (wrongAnswers.length > 0) {
+        reviewSection.classList.remove('hidden');
+        reviewList.innerHTML = '';
+        wrongAnswers.forEach((item, idx) => {
+            const reviewItem = document.createElement('div');
+            reviewItem.className = 'review-item';
+            reviewItem.innerHTML = `
+                <p class="review-q"><strong>Q${idx + 1}:</strong> ${item.question}</p>
+                <p class="review-a wrong-a">Your choice: <span>${item.yourAnswer}</span></p>
+                <p class="review-a correct-a">Correct answer: <span>${item.correctAnswer}</span></p>
+            `;
+            reviewList.appendChild(reviewItem);
+        });
     }
 }
