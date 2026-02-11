@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C++ Mastermind | MCQ Mastery</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="background-wrapper">
+        <div class="noise"></div>
+        <div class="gradient-bg">
+            <svg xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <filter id="goo">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur" />
+                        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -11"
+                            result="goo" />
+                        <feBlend in="SourceGraphic" in2="goo" />
+                    </filter>
+                </defs>
+            </svg>
+            <div class="gradients-container">
+                <div class="g1"></div>
+                <div class="g2"></div>
+                <div class="g3"></div>
+                <div class="g4"></div>
+                <div class="g5"></div>
+                <div class="interactive"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-shell">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <span class="logo-icon">++</span>
+                <span class="logo-text">C++ Mastermind</span>
+            </div>
+            <div class="nav-links">
+                <button id="toggle-help" class="icon-btn" title="Help">?</button>
+            </div>
+        </nav>
+
+        <main class="content-area">
+            <!-- Hero Screen -->
+            <section id="hero-screen" class="screen visible">
+                <div class="hero-content">
+                    <span class="badge">Beginner Level</span>
+                    <h1>Master C++ Fundamentals</h1>
+                    <p>Unlock your programming potential with 60 comprehensive MCQs designed to build a rock-solid
+                        foundation in C++.</p>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">⚡</div>
+                            <h3>Interactive</h3>
+                            <p>Real-time feedback on every answer.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">📊</div>
+                            <h3>Analytics</h3>
+                            <p>Detailed score tracking and breakdown.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🎯</div>
+                            <h3>Curated</h3>
+                            <p>Focused on key beginner concepts.</p>
+                        </div>
+                    </div>
+                    <button id="start-quiz-btn" class="cta-btn">
+                        <span>Begin the Challenge</span>
+                        <span class="btn-icon">→</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Quiz Screen -->
+            <section id="quiz-screen" class="screen hidden">
+                <div class="quiz-layout">
+                    <div class="quiz-sidebar">
+                        <div class="progress-tracker">
+                            <div class="circular-progress-container">
+                                <svg class="circular-progress" viewBox="0 0 100 100">
+                                    <circle class="bg" cx="50" cy="50" r="45"></circle>
+                                    <circle id="progress-indicator" class="fg" cx="50" cy="50" r="45"></circle>
+                                </svg>
+                                <div class="progress-label">
+                                    <span id="current-q">1</span>/<span id="total-qs">60</span>
+                                </div>
+                            </div>
+                            <div class="score-pill">
+                                Score: <span id="live-score">0</span>
+                            </div>
+                        </div>
+                        <div class="topic-indicator">
+                            <small>Current Topic</small>
+                            <h4 id="current-topic">Basics & Syntax</h4>
+                        </div>
+                    </div>
+
+                    <div class="question-canvas glass">
+                        <div class="q-header">
+                            <div class="q-timer" id="q-timer">00:00</div>
+                            <div class="q-actions">
+                                <button class="action-btn" id="skip-q">Hint</button>
+                            </div>
+                        </div>
+                        <div class="q-body">
+                            <h2 id="question-text">Loading question...</h2>
+                            <div id="options-grid" class="options-grid">
+                                <!-- Options injected by JS -->
+                            </div>
+                        </div>
+                        <div class="q-footer">
+                            <div id="feedback-message" class="feedback hidden"></div>
+                            <button id="next-q-btn" class="next-btn hidden">Continue <span
+                                    class="btn-icon">→</span></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Result Screen -->
+            <section id="result-screen" class="screen hidden">
+                <div class="result-card glass">
+                    <div class="confetti-canvas"></div>
+                    <header class="result-header">
+                        <h2>Quiz Complete!</h2>
+                        <p id="result-tagline">Calculating your status...</p>
+                    </header>
+                    <div class="result-stats">
+                        <div class="stat-card">
+                            <span class="stat-val" id="final-score">0</span>
+                            <span class="stat-lab">Total Score</span>
+                        </div>
+                        <div class="stat-card primary">
+                            <span class="stat-val" id="final-percent">0%</span>
+                            <span class="stat-lab">Accuracy</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-val" id="final-time">0:00</span>
+                            <span class="stat-lab">Time Spent</span>
+                        </div>
+                    </div>
+                    <div class="rank-display">
+                        <span class="rank-label">Achievement Unlocked</span>
+                        <h3 id="rank-name">C++ Novice</h3>
+                    </div>
+                    <div class="result-actions">
+                        <button id="restart-btn" class="cta-btn secondary">Try Again</button>
+                        <button id="download-btn" class="cta-btn">Export Results</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="app-footer">
+            <p>&copy; 2026 C++ Mastermind. Built for Excellence.</p>
+        </footer>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+
+</html>
